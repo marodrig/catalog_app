@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Delete Item</title>
+</head>
+<body>
+    <header>
+        <strong>Do you want to delete {{ item.name }} ?</strong>
+    </header>
+    <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST">
+        <button type="submit">Delete</button>
+        <a href="{{ url_for('show_category_items', category_id=item.category_id) }}">Go Back</a>
+        <br>
+    </form>    
+</body>
+</html>

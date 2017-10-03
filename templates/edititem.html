@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Edit Item</title>
+</head>
+
+<body>
+    <section>
+        <h2>Edit Item</h2>
+        <form action="{{ url_for('edit_item', item_id=item.id) }}" method="POST">
+            <label>Name</label>
+            <input name="name" type="text" placeholder="{{ item.name }}">
+            <br>
+            <label>Description</label>
+            <br>
+            <textarea name="description" rows="4" placeholder="{{ item.description }}"></textarea>
+            <br>
+            <label>Category</label>
+            <select name="category">
+                        {% for category in category_list %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+            <br>
+            <label>Price</label>
+            <input name="price" type="number" placeholder="{{ item.price }}">
+            <br>
+            <button type="submit">Save</button>
+            <button type="reset">Clear</button>
+            <a href="{{ url_for('show_category_items', category_id=item.category_id) }}">Go Back</a>
+        </form>
+    </section>
+</body>
+
+</html>
