@@ -24,6 +24,7 @@ session = DBSession()
 @app.route('/logout')
 def logout():
     """
+    Deletes the user profile and credentials when logging out
     """
     # Delete the user's profile and the credentials stored by oauth2.
     del login_session['profile']
@@ -35,6 +36,8 @@ def logout():
 @app.route('/oauth2callback')
 def google_signin():
     """
+    Call back for logging users using Googles oauth2 API
+    Follows the flow given by the oauth client from Google
     """
     flow = oauth_client.flow_from_clientsecrets('client_secret.json',
                                                 scope=['openid', 'email'],
@@ -50,15 +53,15 @@ def google_signin():
         auth_uri = flow.step1_get_authorize_url(state=login_session['state'])
         return redirect(auth_uri)
 
-    code = request.args.get('code', '')
     if request.args.get('state', '') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
 
-    credentials = flow.step2_exchange(code)
-    http = httplib2.Http()
-    credentials.authorize(http)
+    auth_code = request.args.get('code', '')
+    credentials = flow.step2_exchange(auth_code)
+    http_conn = httplib2.Http()
+    credentials.authorize(http_conn)
 
     # resp, content = http.request()
     # if resp.status != 200:
@@ -67,13 +70,14 @@ def google_signin():
     #     return None
 
     login_session['profile'] = credentials.id_token
-    if not session.query(User).filter_by(email=login_session['profile']['email']).first():
-        new_user = User(username=login_session['profile']['email'],email=login_session['profile']['email'])
+    user_email = login_session['profile']['email']
+    if not session.query(User).filter_by(email=user_email).first():
+        new_user = User(username=user_email,email=user_email)
         session.add(new_user)
         session.commit()
-    logged_user = session.query(User).filter_by(email=login_session['profile']['email']).one()
+
+    logged_user = session.query(User).filter_by(email=user_email).one()
     print("Current username: {}".format(logged_user.username))
-    print("email: {}".format(login_session['profile']['email']))
     return redirect(url_for('get_categories'))
 
 
