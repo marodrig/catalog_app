@@ -58,8 +58,14 @@ def google_signin():
         response.headers['Content-Type'] = 'application/json'
         return response
 
-    auth_code = request.args.get('code', '')
+    auth_code = request.args.get('code')
     credentials = flow.step2_exchange(auth_code)
+
+    if credentials.access_token_expired:
+        response = make_response(json.dumps('Token invalid or experired.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
     http_conn = httplib2.Http()
     credentials.authorize(http_conn)
 
