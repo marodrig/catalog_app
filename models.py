@@ -1,3 +1,6 @@
+"""
+ORM model information for the catalog web application
+"""
 import os
 import sys
 import datetime
@@ -32,7 +35,7 @@ class Category(Base):
 class Item(Base):
     """
     """
-    __tablename__ ='item'
+    __tablename__ = 'item'
     id = Column(Integer, primary_key=True)
     category = relationship(Category)
     category_id = Column(Integer, ForeignKey('category.id'))
