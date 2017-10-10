@@ -15,7 +15,7 @@ from models import Base, Category, Item, User
 from oauth2client import client as oauth_client
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound, IntegrityError
 
 app = Flask(__name__)
 
@@ -83,7 +83,7 @@ def google_signin():
     if resp.status != 200:
         app.logger.error(
             "Error while obtaining user profile: \n%s: %s", resp, content)
-        abort(400) 
+        abort(400)
 
     login_session['profile'] = json.loads(content.decode('utf-8'))
     login_session.modified = True
@@ -96,6 +96,7 @@ def google_signin():
 
     return redirect(url_for('get_categories'))
 
+
 def get_error_response(msg, http_status):
     """
     """
@@ -104,14 +105,21 @@ def get_error_response(msg, http_status):
     response.headers['Content-Type'] = 'application/json'
     return response
 
+
 def authenticate_user(user_email):
     """
     """
-    logged_user = session.query(User).filter_by(email=user_email).one()
+    try:
+        logged_user = session.query(User).filter_by(email=user_email).one()
+    except NoResultFound:
+        app.logger.erro("Error: {}".format(NoResultFound))
     if not logged_user:
         new_user = User(username=user_email, email=user_email)
         session.add(new_user)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as ie:
+            app.loggg.erro("Error: {}".format(ie))
         logged_user = new_user
     return logged_user
 
@@ -145,7 +153,10 @@ def login_required(fnc):
             s = Signer('secret_key')
             user_id = s.unsign(login_session.get('_session_id'))
             app.logger.debug('user_id: %s', user_id)
-            user = session.query(User).filter_by(id=user_id).one()
+            try:
+                user = session.query(User).filter_by(id=user_id).one()
+            except NoResultFound:
+                app.logger.error("Error: {}.".format(NoResultFound))
             if user:
                 app.logger.debug('Authenticated user %s', user.username)
                 # Success!
