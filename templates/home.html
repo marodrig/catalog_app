@@ -8,6 +8,9 @@
     <strong> No categories. </strong> {% endif %}
 </section>
 <section>
+    {% if session.profile %}
+    <strong>{{ session.profile.email }}</strong>
+    {% endif %}
     {% if new_item_list %}
     <ul>Newest items</ul>
     {% for new_item in new_item_list %}

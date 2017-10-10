@@ -1,18 +1,21 @@
 """
 Logic for rendering views of the catalog web application
 """
-import os
 import hashlib
-import httplib2
 import json
-from flask import Flask, render_template, url_for, redirect, request
-from flask import abort, g, make_response
+import os
+from functools import wraps
+
+import httplib2
 from flask import session as login_session
-from sqlalchemy.orm.exc import NoResultFound
+from flask import (Flask, abort, flash, g, jsonify, make_response, redirect,
+                   render_template, request, url_for)
+from itsdangerous import Signer
 from models import Base, Category, Item, User
+from oauth2client import client as oauth_client
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from oauth2client import client as oauth_client
+from sqlalchemy.orm.exc import NoResultFound
 
 app = Flask(__name__)
 
@@ -27,7 +30,11 @@ def logout():
     Deletes the user profile and credentials when logging out
     """
     # Delete the user's profile and the credentials stored by oauth2.
-    del login_session['profile']
+    if 'profile' in login_session:
+        login_session.pop('profile')
+    if '_session_id' in login_session:
+        login_session.pop('_session_id')
+
     login_session.modified = True
     # oauth2.storage.delete()
     return redirect(request.referrer or '/')
@@ -40,7 +47,10 @@ def google_signin():
     Follows the flow given by the oauth client from Google
     """
     flow = oauth_client.flow_from_clientsecrets('client_secret.json',
-                                                scope=['openid', 'email'],
+                                                scope=[
+                                                    'openid',
+                                                    'email',
+                                                    'profile'],
                                                 message='Invalid key',
                                                 redirect_uri=url_for('google_signin', _external=True))
 
@@ -54,37 +64,99 @@ def google_signin():
         return redirect(auth_uri)
 
     if request.args.get('state', '') != login_session['state']:
-        response = make_response(json.dumps('Invalid state parameter.'), 401)
-        response.headers['Content-Type'] = 'application/json'
+        response = get_error_response('Invalid state parameter.', 401)
         return response
 
     auth_code = request.args.get('code')
     credentials = flow.step2_exchange(auth_code)
+    # login_session['profile'] = credentials.id_token
 
     if credentials.access_token_expired:
-        response = make_response(json.dumps('Token invalid or experired.'), 401)
-        response.headers['Content-Type'] = 'application/json'
+        response = get_error_response("Invalid token", 401)
         return response
 
     http_conn = httplib2.Http()
     credentials.authorize(http_conn)
 
-    # resp, content = http.request()
-    # if resp.status != 200:
-    #     app.logger.error(
-    #         "Error while obtaining user profile: \n%s: %s", resp, content)
-    #     return None
+    resp, content = http_conn.request(
+        'https://www.googleapis.com/oauth2/v2/userinfo')
+    if resp.status != 200:
+        app.logger.error(
+            "Error while obtaining user profile: \n%s: %s", resp, content)
+        abort(400) 
 
-    login_session['profile'] = credentials.id_token
-    user_email = login_session['profile']['email']
-    if not session.query(User).filter_by(email=user_email).first():
-        new_user = User(username=user_email,email=user_email)
+    login_session['profile'] = json.loads(content.decode('utf-8'))
+    login_session.modified = True
+    app.logger.debug("Profile Information: {}".format(
+        login_session.get('profile')))
+
+    user_email = login_session.get('profile').get('email')
+    logged_user = authenticate_user(user_email)
+    login_user(logged_user)
+
+    return redirect(url_for('get_categories'))
+
+def get_error_response(msg, http_status):
+    """
+    """
+    response = make_response(json.dumps(
+        msg), http_status)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
+def authenticate_user(user_email):
+    """
+    """
+    logged_user = session.query(User).filter_by(email=user_email).one()
+    if not logged_user:
+        new_user = User(username=user_email, email=user_email)
         session.add(new_user)
         session.commit()
+        logged_user = new_user
+    return logged_user
 
-    logged_user = session.query(User).filter_by(email=user_email).one()
-    print("Current username: {}".format(logged_user.username))
-    return redirect(url_for('get_categories'))
+
+def login_user(current_user):
+    """
+    :param arg1:
+    :type arg1:
+    :return result:
+    :type result:
+    """
+    s = Signer('secret_key')
+    login_session['_session_id'] = s.sign(str(current_user.id))
+    return login_session.get('_session_id') is not None
+
+
+def login_required(fnc):
+    """
+    Before rendering the view we check if the user is logged in
+
+    :param fnc:
+    :type arg1:
+    :return result:
+    :type result:
+    """
+    @wraps(fnc)
+    def decorated_view(*args, **kwargs):
+        """
+        """
+        if '_session_id' in login_session:
+            s = Signer('secret_key')
+            user_id = s.unsign(login_session.get('_session_id'))
+            app.logger.debug('user_id: %s', user_id)
+            user = session.query(User).filter_by(id=user_id).one()
+            if user:
+                app.logger.debug('Authenticated user %s', user.username)
+                # Success!
+                return fnc(*args, **kwargs)
+            else:
+                flash("Session exists, but user does not exist (anymore)")
+                return make_response('not authorized')
+        else:
+            flash("Please log in")
+            return make_response('not authorized')
+    return decorated_view
 
 
 @app.route('/')
@@ -147,6 +219,7 @@ def show_item(item_id):
 
 
 @app.route('/catalog/items/create', methods=['GET', 'POST'])
+@login_required
 def create_item():
     """
     Create a new item for the catalog
@@ -164,6 +237,7 @@ def create_item():
 
 
 @app.route('/catalog/items/<int:item_id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_item(item_id):
     """
     Edit given item with item_id
@@ -189,9 +263,10 @@ def edit_item(item_id):
 
 
 @app.route('/catalog/items/<int:item_id>/delete', methods=['GET', 'POST'])
+@login_required
 def delete_item(item_id):
     """
-    Delete an item by id
+    Delete an item by item_id
     """
     item = session.query(Item).filter_by(id=item_id).one()
     if request.method == 'POST':
@@ -199,6 +274,32 @@ def delete_item(item_id):
         session.commit()
         return redirect(url_for('show_category_items', category_id=item.category_id))
     return render_template('deleteitem.html', item=item)
+
+
+@app.route('/api/v1/items/<int:item_id>', methods=['GET'])
+@login_required
+def item_json(item_id):
+    """
+    :param arg1:
+    :type arg1:
+    :return result:
+    :type result:
+    """
+    item = session.query(Item).filter_by(id=item_id).one()
+    return jsonify(item.serialize)
+
+
+@app.route('/api/v1/items', methods=['GET'])
+@login_required
+def items_json():
+    """
+    :param arg1:
+    :type arg1:
+    :return result:
+    :type result:
+    """
+    items = session.query(Item).all()
+    return jsonify(items_catalog=[item.serialize for item in items])
 
 
 if __name__ == '__main__':
