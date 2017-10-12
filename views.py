@@ -25,6 +25,18 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
+@app.before_request
+def csrf_protect():
+    """
+    """
+    if request.method == "POST":
+        token = login_session.pop('_csrf_token')
+        app.logger.info("Token: {}".format(token))
+        app.logger.info("Form token: {}".format(request.form.get('_csrf_token')))
+        if not token or token != request.form.get('_csrf_token'):
+            abort(403)
+
+
 @app.route('/logout')
 def logout():
     """
@@ -287,7 +299,7 @@ def edit_item(item_id):
             session.commit()
         except IntegrityError:
             app.logger.error("Error: {}".format(IntegrityError))
-        flash("Edited {}".format(new_values['name']))
+        flash("Edited item from catalog.")
         return redirect(url_for('show_category_items', category_id=new_values['category_id']))
     category_list = session.query(Category).all()
     return render_template('edititem.html', item=item, category_list=category_list)
@@ -351,7 +363,17 @@ def categories_json():
     return jsonify(category_list=[category.serialize for category in categories])
 
 
+def generate_csrf_token():
+    """
+    """
+    if '_csrf_token' not in login_session:
+        login_session['_csrf_token'] = hashlib.sha256(os.urandom(256)).hexdigest()
+        login_session.modified = True
+    return login_session['_csrf_token']
+
+
 if __name__ == '__main__':
+    app.jinja_env.globals['csrf_token'] = generate_csrf_token 
     app.secret_key = hashlib.sha256(os.urandom(1024)).hexdigest()
     app.debug = True
     app.run(host='0.0.0.0', port=8080)

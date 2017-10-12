@@ -4,6 +4,7 @@
     <a class="button" href="{{ url_for('create_item') }}">Create Item</a>
     {% endif %}
     {% if items_list %}
+    <h4>Items</h4>
     <ul class="vertical-menu align-center">
     {% for item in items_list %}
     <li>

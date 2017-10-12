@@ -2,6 +2,7 @@
 <section>
     <p>Confirm that you want to delete {{ item.name }} ?</p>
     <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST">
+        <input name="_csrf_token" type=hidden value="{{ csrf_token() }}">
         <button class="success button" type="submit">Delete</button>
         <a class="button" href="{{ url_for('show_category_items', category_id=item.category_id) }}">Back</a>
     </form>    

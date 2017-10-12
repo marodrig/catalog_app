@@ -1,27 +1,27 @@
-{% extends "base.html" %}
-{% block content %}
-    <section>
-        <h2>Edit Item</h2>
-        <form action="{{ url_for('edit_item', item_id=item.id) }}" method="POST">
-            <label>Name
+{% extends "base.html" %} {% block content %}
+<section>
+    <h2>Edit Item</h2>
+    <form action="{{ url_for('edit_item', item_id=item.id) }}" method="POST">
+        <input name="_csrf_token" type=hidden value="{{ csrf_token() }}">
+        <label>Name
             <input name="name" type="text" placeholder="{{ item.name }}">
-            </label>
-            <label>Description
+        </label>
+        <label>Description
             <textarea name="description" rows="4" placeholder="{{ item.description }}"></textarea>
-            </label>
-            <label>Category
+        </label>
+        <label>Category
             <select name="category">
                 {% for category in category_list %}
                 <option value="{{ category.id }}">{{ category.name }}</option>
                 {% endfor %}
-                </select>
-            </label>
-            <label>Price
+            </select>
+        </label>
+        <label>Price
             <input name="price" type="number" placeholder="{{ item.price }}" min="1" step="any">
-            </label>
-            <button class="success button" type="submit">Save</button>
-            <button class="alert button" type="reset">Clear</button>
-            <a class="button" href="{{ url_for('show_category_items', category_id=item.category_id) }}">Back</a>
-        </form>
-    </section>
+        </label>
+        <button class="success button" type="submit">Save</button>
+        <button class="alert button" type="reset">Clear</button>
+        <a class="button" href="{{ url_for('show_category_items', category_id=item.category_id) }}">Back</a>
+    </form>
+</section>
 {% endblock content %}

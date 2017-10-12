@@ -3,6 +3,7 @@
     <section>
         <h2>Create Item</h2>
         <form action="{{ url_for('create_item') }}" method="POST">
+        <input name="_csrf_token" type=hidden value="{{ csrf_token() }}">
             <label>Name
             <input name="name" type="text">
             </label>
