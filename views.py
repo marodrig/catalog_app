@@ -254,7 +254,10 @@ def create_item():
                         category_id=request.form['category'],
                         price=request.form['price'])
         session.add(new_item)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError:
+            app.logger.error("Error: {}".format(IntegrityError))
         flash("Created new catalog item.")
         return redirect(url_for('get_categories'))
     return render_template('createitem.html', category_list=category_list)
@@ -280,7 +283,10 @@ def edit_item(item_id):
         if request.form['price']:
             new_values['price'] = request.form['price']
         qry_inst.update(new_values)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError:
+            app.logger.error("Error: {}".format(IntegrityError))
         flash("Edited {}".format(new_values['name']))
         return redirect(url_for('show_category_items', category_id=new_values['category_id']))
     category_list = session.query(Category).all()
@@ -297,7 +303,10 @@ def delete_item(item_id):
     item = session.query(Item).filter_by(id=item_id).one()
     if request.method == 'POST':
         session.delete(item)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError:
+            app.logger.error("Error: {}".format(IntegrityError))
         flash("Deleted item from catalog.")
         return redirect(url_for('show_category_items', category_id=item.category_id))
     return render_template('deleteitem.html', item=item, category_list=category_list)
