@@ -1,25 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
-    <body>
-        <section>
-            <a href="{{ url_for('create_item') }}">Create Item</a>
-            {% if items_list%}
-            <ul>Items</ul>
-            {% for item in items_list%}
-            <li><a href="{{ url_for('show_item', item_id=item.id) }}">{{ item.name }}</a></li>
-            <br>
-            <a href="{{ url_for('edit_item', item_id=item.id) }}">Edit</a>
-            <a href="{{ url_for('delete_item', item_id=item.id) }}">Delete</a>
-            {% endfor %}
-            {% else %}
-            <h2>No items</h2>
-            {% endif %}
-        </section>
-    
-    </body>
-</html>
+{% extends "base.html" %} {% block content %}
+<section>
+    {% if session.profile %}
+    <a class="button" href="{{ url_for('create_item') }}">Create Item</a>
+    {% endif %}
+    {% if items_list %}
+    <ul class="vertical-menu align-center">
+    {% for item in items_list %}
+    <li>
+        <a href="{{ url_for('show_item', item_id=item.id) }}">{{ item.name }}</a>
+        {% if session.profile %}
+        <br>
+        <a class="button" href="{{ url_for('edit_item', item_id=item.id) }}">Edit</a>
+        <a class="button" href="{{ url_for('delete_item', item_id=item.id) }}">Delete</a>
+        <br>
+        {% endif %}
+    </li>
+    {% endfor %} 
+    </ul>
+    {% else %}
+    <h2>No items</h2>
+    {% endif %}
+</section>
+{% endblock content %}

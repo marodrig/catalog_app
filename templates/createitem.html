@@ -1,37 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Create Item</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
     <section>
-        <h2>Create new item</h2>
+        <h2>Create Item</h2>
         <form action="{{ url_for('create_item') }}" method="POST">
-            <label>Name</label>
+            <label>Name
             <input name="name" type="text">
-            <br>
-            <label>Description</label>
-            <br>
-            <textarea name="description" rows="4"></textarea>
-            <br>
-            <label>Price</label>
-            <input name="price" type="number">
-            <br>
-            <label>Category</label>
-            <select name="category"> 
+            </label>
+            <label>Description
+            <textarea name="description" rows="4" ></textarea>
+            </label>
+            <label>Category
+            <select name="category">
                 {% for category in category_list %}
                 <option value="{{ category.id }}">{{ category.name }}</option>
                 {% endfor %}
             </select>
-            <br>
-            <button type="submit">Create</button>
-            <button type="reset">Clear</button>
-            <a href="{{ url_for('get_categories') }}">Go Back</a>
+            </label>
+            <label>Price
+            <input name="price" type="number" min="1" step="any"/>
+            </label>
+            <button class="success button" type="submit">Create</button>
+            <button class="alert button" type="reset">Clear</button>
+            <a class="button" href="{{ url_for('get_categories') }}">Back</a>
         </form>
     </section>
-    
-</body>
-</html>
+{% endblock content %}

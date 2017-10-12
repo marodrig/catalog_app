@@ -15,7 +15,8 @@ from models import Base, Category, Item, User
 from oauth2client import client as oauth_client
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import NoResultFound, IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 
@@ -93,12 +94,17 @@ def google_signin():
     user_email = login_session.get('profile').get('email')
     logged_user = authenticate_user(user_email)
     login_user(logged_user)
+    flash("Logged in using google.")
 
     return redirect(url_for('get_categories'))
 
 
 def get_error_response(msg, http_status):
     """
+    :param arg1:
+    :type arg1:
+    :return result:
+    :type result:
     """
     response = make_response(json.dumps(
         msg), http_status)
@@ -108,6 +114,10 @@ def get_error_response(msg, http_status):
 
 def authenticate_user(user_email):
     """
+    :param arg1:
+    :type arg1:
+    :return result:
+    :type result:
     """
     try:
         logged_user = session.query(User).filter_by(email=user_email).one()
@@ -118,8 +128,8 @@ def authenticate_user(user_email):
         session.add(new_user)
         try:
             session.commit()
-        except IntegrityError as ie:
-            app.loggg.erro("Error: {}".format(ie))
+        except IntegrityError:
+            app.loggg.erro("Error: {}".format(IntegrityError))
         logged_user = new_user
     return logged_user
 
@@ -215,9 +225,10 @@ def show_category_items(category_id):
     :param category_id: Unique id of the category
     :return item_list: List of items
     """
+    category_list = session.query(Category).all()
     items_list = session.query(Item).filter_by(
         category_id=category_id).order_by('date_created').all()
-    return render_template('items.html', items_list=items_list)
+    return render_template('items.html', items_list=items_list, category_list=category_list)
 
 
 @app.route('/catalog/items/<int:item_id>')
@@ -225,8 +236,9 @@ def show_item(item_id):
     """
     Shows the item information
     """
+    category_list = session.query(Category).all()
     item = session.query(Item).filter_by(id=item_id).one()
-    return render_template('item.html', item=item)
+    return render_template('item.html', item=item, category_list=category_list)
 
 
 @app.route('/catalog/items/create', methods=['GET', 'POST'])
@@ -243,6 +255,7 @@ def create_item():
                         price=request.form['price'])
         session.add(new_item)
         session.commit()
+        flash("Created new catalog item.")
         return redirect(url_for('get_categories'))
     return render_template('createitem.html', category_list=category_list)
 
@@ -268,6 +281,7 @@ def edit_item(item_id):
             new_values['price'] = request.form['price']
         qry_inst.update(new_values)
         session.commit()
+        flash("Edited {}".format(new_values['name']))
         return redirect(url_for('show_category_items', category_id=new_values['category_id']))
     category_list = session.query(Category).all()
     return render_template('edititem.html', item=item, category_list=category_list)
@@ -279,12 +293,14 @@ def delete_item(item_id):
     """
     Delete an item by item_id
     """
+    category_list = session.query(Category).all()
     item = session.query(Item).filter_by(id=item_id).one()
     if request.method == 'POST':
         session.delete(item)
         session.commit()
+        flash("Deleted item from catalog.")
         return redirect(url_for('show_category_items', category_id=item.category_id))
-    return render_template('deleteitem.html', item=item)
+    return render_template('deleteitem.html', item=item, category_list=category_list)
 
 
 @app.route('/api/v1/items/<int:item_id>', methods=['GET'])
@@ -311,6 +327,19 @@ def items_json():
     """
     items = session.query(Item).all()
     return jsonify(items_catalog=[item.serialize for item in items])
+
+
+@app.route('/api/v1/categories', methods=['GET'])
+@login_required
+def categories_json():
+    """
+    :param arg1:
+    :type arg1:
+    :return result:
+    :type result:
+    """
+    categories = session.query(Category).all()
+    return jsonify(category_list=[category.serialize for category in categories])
 
 
 if __name__ == '__main__':

@@ -2,26 +2,63 @@
 <html lang="en">
 
 <head>
-    {% block head %}
-    <title>{% block title %} {% endblock title %}</title>
+    <title>{% block title %} {% endblock title %} - Catalog Web App</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="css/style.css" rel="stylesheet"> 
-    {% endblock head %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/foundation.css') }}" />
+    <!-- <link href="/static/css/app.css" rel="stylesheet"/>  -->
 </head>
 
 <body>
-    <main>
-        <nav>
-            
+    <header>
+        <div class="panel-clearfix">
+            <h3>
+                <a href="{{ url_for('get_categories') }}">Catalog App</a>
+            </h3>
             {% if session.profile %}
-            <a href="{{ url_for('logout') }}">logout</a>
-            {% else %}    
-            <a href="{{ url_for('google_signin') }}">Sign in with Google</a>
+            <a href="{{ url_for('logout') }}" class="button right">logout</a>
+            {% else %}
+            <a href="{{ url_for('google_signin') }}" class="button right">Sign in with Google</a>
             {% endif %}
-        </nav>
-        {% block content %}
-        {% endblock content %}
+        </div>
+    </header>
+    <main>
+        <section>
+            <div class="grid-container">
+                <div class="grid-x grid-margin-x">
+                    <div class="medium-6 large-4 cell">
+                        <ul class="vertical-menu align-left">
+                            {% with messages = get_flashed_messages() %} 
+                            {% if messages %} 
+                            {% for message in messages %}
+                            <div class="callout success">
+                                <strong>{{ message }}</strong>
+                                <br>
+                            </div>
+                            {% endfor %} 
+                            {% endif %} 
+                            {% endwith %} 
+                            {% if category_list %}
+                            <h3>Categories</h3>
+                            {% if session.profile %}
+                            <a href="{{ url_for('create_category') }}" class="button">Create Category</a>
+                            {% endif %}
+                            {% for category in category_list %}
+                            <li>
+                                <a href="{{ url_for('show_category_items', category_id=category.id) }}">{{ category.name }}</a>
+                            </li>
+                            {% endfor %} 
+                            {% else %}
+                            <strong> No categories. </strong>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% block content %} 
+                    {% endblock content %}
+                </div>
+            </div>
+            </div>
+        </section>
     </main>
     <footer>
         {% block footer %} {% endblock footer %}
@@ -29,5 +66,11 @@
 </body>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 <script src="//apis.google.com/js/platform.js?onload=start"></script>
+<script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vendor/foundation.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vendor/what-input.js') }}"></script>
+<script>
+    $(document).foundation();
+</script>
 
 </html>

@@ -76,6 +76,10 @@ class Category(Base):
     @property
     def serialize(self):
         """
+        :param arg1:
+        :type arg1:
+        :return result:
+        :type result:
         """
         return{'id': self.id,
                 'name':self.name}
@@ -98,6 +102,10 @@ class Item(Base):
     @property
     def serialize(self):
         """
+        :param arg1:
+        :type arg1:
+        :return result:
+        :type result:
         """
         return{
                 'id':self.id,

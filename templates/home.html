@@ -1,21 +1,19 @@
-{% extends "base.html" %} {% block content %}
-<section>
-    <a href="{{ url_for('create_category') }}">Create Category</a> {% if category_list %}
-    <ul>Categories</ul>
-    {% for category in category_list %}
-    <li> <a href="{{ url_for('show_category_items', category_id=category.id) }}">{{ category.name }}</a> </li>
-    {% endfor %} {% else %}
-    <strong> No categories. </strong> {% endif %}
-</section>
-<section>
-    {% if session.profile %}
-    <strong>{{ session.profile.email }}</strong>
-    {% endif %}
-    {% if new_item_list %}
-    <ul>Newest items</ul>
-    {% for new_item in new_item_list %}
-    <li>{{ new_item.name }}</li>
-    {% endfor %} {% else %}
-    <strong>No new items</strong> {% endif %}
-</section>
+{% extends "base.html" %} 
+{% block title %} Home {% endblock title %} 
+{% block content %} 
+<div class="medium-6 large-4 cell">
+    <ul class="vertical-menu align-center">
+        <h3>Newest Items</h3>
+        {% if new_item_list %} 
+        {% for new_item in new_item_list %}
+        <li>
+            <a href="{{ url_for('show_item', item_id=new_item.id) }}">{{ new_item.name }}</a>
+            [{{ new_item.category.name }}]
+        </li>
+        {% endfor %} 
+        {% else %}
+        <strong>No new items</strong>
+        {% endif %}
+    </ul>
+</div>
 {% endblock content %}
