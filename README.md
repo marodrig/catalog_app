@@ -12,15 +12,15 @@ The application is a basic catalog of items and includes login using Google's oa
 
 We need to populate the database with data, in order to do so we need to run the followin command:
 
-'''cmd
+```cmd
 python populate_db.py
-'''
+```
 
 After that we can run the application by the following command:
 
-'''cmd
+```cmd
 python views.py
-'''
+```
 
 Access the application by going to:
 
