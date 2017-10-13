@@ -1,5 +1,5 @@
 """
-Logic for rendering views of the catalog web application
+Views of the Flask catalog web application
 """
 import hashlib
 import json
@@ -28,11 +28,19 @@ session = DBSession()
 @app.before_request
 def csrf_protect():
     """
+    Checks for a csrf token if the request is a POST.
+    If not found, we abort with a 403 HTTP status
+
+    :param request object:  Contains the request method/form
+    :type Request:
+    :return :
+    :type :
     """
     if request.method == "POST":
         token = login_session.pop('_csrf_token')
         app.logger.info("Token: {}".format(token))
-        app.logger.info("Form token: {}".format(request.form.get('_csrf_token')))
+        app.logger.info("Form token: {}".format(
+            request.form.get('_csrf_token')))
         if not token or token != request.form.get('_csrf_token'):
             abort(403)
 
@@ -42,14 +50,12 @@ def logout():
     """
     Deletes the user profile and credentials when logging out
     """
-    # Delete the user's profile and the credentials stored by oauth2.
     if 'profile' in login_session:
         login_session.pop('profile')
     if '_session_id' in login_session:
         login_session.pop('_session_id')
 
     login_session.modified = True
-    # oauth2.storage.delete()
     return redirect(request.referrer or '/')
 
 
@@ -82,7 +88,6 @@ def google_signin():
 
     auth_code = request.args.get('code')
     credentials = flow.step2_exchange(auth_code)
-    # login_session['profile'] = credentials.id_token
 
     if credentials.access_token_expired:
         response = get_error_response("Invalid token", 401)
@@ -113,10 +118,14 @@ def google_signin():
 
 def get_error_response(msg, http_status):
     """
-    :param arg1:
-    :type arg1:
-    :return result:
-    :type result:
+    Creates a response with the given message and http_status
+
+    :param msg: Error message we show to the user
+    :type msg: String
+    :param http_status: HTTP status for the response object
+    :type http_status: Integer
+    :return response: http response with header 'application/json'
+    :type response:  Response object
     """
     response = make_response(json.dumps(
         msg), http_status)
@@ -126,10 +135,13 @@ def get_error_response(msg, http_status):
 
 def authenticate_user(user_email):
     """
-    :param arg1:
-    :type arg1:
-    :return result:
-    :type result:
+    Looks for a User with the given email, and returns its User Object
+    If not found, we create a new USER
+
+    :param user_email: email received for google oauth2 login
+    :type user_email: string
+    :return logged_user:  authenticated user 
+    :type logged_user: User Object
     """
     try:
         logged_user = session.query(User).filter_by(email=user_email).one()
@@ -148,10 +160,12 @@ def authenticate_user(user_email):
 
 def login_user(current_user):
     """
-    :param arg1:
-    :type arg1:
-    :return result:
-    :type result:
+    Creates and assigns a session_id we can look for if the user is logged in
+
+    :param current_user:
+    :type current_user:  User Object
+    :return result:  if session_id exists in the current user session cookie
+    :type result: boolean
     """
     s = Signer('secret_key')
     login_session['_session_id'] = s.sign(str(current_user.id))
@@ -163,7 +177,7 @@ def login_required(fnc):
     Before rendering the view we check if the user is logged in
 
     :param fnc:
-    :type arg1:
+    :type fnc:
     :return result:
     :type result:
     """
@@ -279,7 +293,7 @@ def create_item():
 @login_required
 def edit_item(item_id):
     """
-    Edit given item with item_id
+    Edits given item with item_id
     """
     new_values = dict()
     new_values['id'] = item_id
@@ -328,10 +342,12 @@ def delete_item(item_id):
 @login_required
 def item_json(item_id):
     """
-    :param arg1:
-    :type arg1:
-    :return result:
-    :type result:
+    JSON API endpoint for accessing a specific item
+
+    :param item_id: item id
+    :type item_id: integer
+    :return json: json object of the item 
+    :type json: json
     """
     item = session.query(Item).filter_by(id=item_id).one()
     return jsonify(item.serialize)
@@ -341,10 +357,10 @@ def item_json(item_id):
 @login_required
 def items_json():
     """
-    :param arg1:
-    :type arg1:
-    :return result:
-    :type result:
+    JSON API endpoint for all items in the catalog
+
+    :return json: json of all items in catalog
+    :type json: json
     """
     items = session.query(Item).all()
     return jsonify(items_catalog=[item.serialize for item in items])
@@ -354,10 +370,10 @@ def items_json():
 @login_required
 def categories_json():
     """
-    :param arg1:
-    :type arg1:
-    :return result:
-    :type result:
+    JSON API endpoint for all categories of the catalog
+
+    :return result: json of all categories
+    :type result: json
     """
     categories = session.query(Category).all()
     return jsonify(category_list=[category.serialize for category in categories])
@@ -365,15 +381,20 @@ def categories_json():
 
 def generate_csrf_token():
     """
+    Generates a csrf token used in forms
+
+    :return csrf_token: value of the token
+    :type csrf_token: string
     """
     if '_csrf_token' not in login_session:
-        login_session['_csrf_token'] = hashlib.sha256(os.urandom(256)).hexdigest()
+        login_session['_csrf_token'] = hashlib.sha256(
+            os.urandom(256)).hexdigest()
         login_session.modified = True
     return login_session['_csrf_token']
 
 
 if __name__ == '__main__':
-    app.jinja_env.globals['csrf_token'] = generate_csrf_token 
+    app.jinja_env.globals['csrf_token'] = generate_csrf_token
     app.secret_key = hashlib.sha256(os.urandom(1024)).hexdigest()
     app.debug = True
     app.run(host='0.0.0.0', port=8080)
