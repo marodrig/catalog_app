@@ -40,7 +40,7 @@ http://localhost:8080/api/v1/items
 
 User needs to be logged in and type the following in the browser:
 
-http://localhost:8080/api/v1/items/[__item\_id__]
+http://localhost:8080/api/v1/items/[item_id]
 
 Where__item\_id__ is the id for the item we want to access.
 
