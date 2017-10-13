@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} 
+{% block title %} Current Items {% endblock title %}
+{% block content %}
 <section>
     {% if session.profile %}
     <a class="button" href="{{ url_for('create_item') }}">Create Item</a>

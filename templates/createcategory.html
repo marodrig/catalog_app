@@ -1,24 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-        <h2>Creating new category</h2>
-    <form action="#" method="POST">
-        <label>Name</label>
-        <input name="name" type="text">
-        <br>
-        <label>Description</label>
-        <br>
-        <textarea name="description" rows="4"></textarea>
-        <br>
-        <button type="submit">Create</button>
-        <button type="reset">Clear</button>
-        <button type="button" formaction="#">Cancel</button>
+{% extends "base.html"%} {% block title %} Add Category {% endblock title %} {% block content %}
+<section>
+    <h2>Add Category</h2>
+    <form action="{{ url_for('create_category') }}" method="POST">
+        <input name="_csrf_token" type=hidden value="{{ csrf_token() }}">
+        <label>Name
+            <input name="name" type="text">
+        </label>
+        <button class="success button" type="submit">Create</button>
+        <button class="alert button" type="reset">Clear</button>
+        <a class="button" href="{{ url_for('get_categories') }}">Back</a>
     </form>
-    </body>
-</html>
+</section>
+{% endblock content %}

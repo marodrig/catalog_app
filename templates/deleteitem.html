@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} 
+{% block title %}Delete Item{% endblock title %}
+{% block content %}
 <section>
     <p>Confirm that you want to delete {{ item.name }} ?</p>
     <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST">

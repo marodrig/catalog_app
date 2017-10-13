@@ -37,9 +37,12 @@ def csrf_protect():
     :type :
     """
     if request.method == "POST":
-        token = login_session.pop('_csrf_token')
-        app.logger.info("Token: {}".format(token))
-        app.logger.info("Form token: {}".format(
+        try:
+            token = login_session.pop('_csrf_token')
+        except KeyError:
+            app.logger.error("Error: {}".format(KeyError))
+        app.logger.debug("Token: {}".format(token))
+        app.logger.debug("Form token: {}".format(
             request.form.get('_csrf_token')))
         if not token or token != request.form.get('_csrf_token'):
             abort(403)
@@ -218,28 +221,22 @@ def get_categories():
     return render_template('home.html', category_list=category_list, new_item_list=new_item_list)
 
 
-@app.route('/categories/create')
+@app.route('/categories/create', methods=['GET', 'POST'])
 def create_category():
     """
     Create a new category
     """
-    return render_template('createcategory.html')
-
-
-@app.route('/categories/<int:category_id>/edit')
-def edit_category(category_id):
-    """
-    Edit/update an existing category in database
-    """
-    return render_template('editcategory.html', category_id=category_id)
-
-
-@app.route('/categories/<int:category_id>/delete')
-def delete_category(category_id):
-    """
-    Delete a category from database
-    """
-    return render_template('deletecategory.html', category_id=category_id)
+    if request.method == 'POST':
+        new_category = Category(name= request.form['name'])
+        session.add(new_category)
+        try:
+            session.commit()
+        except IntegrityError:
+            app.logger.error("Error: {}".format(IntegrityError))
+        flash("Added new category!")
+        return redirect(url_for('get_categories'))
+    category_list = session.query(Category).all()
+    return render_template('createcategory.html', category_list=category_list)
 
 
 @app.route('/categories/<int:category_id>')
