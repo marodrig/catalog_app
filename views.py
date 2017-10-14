@@ -146,17 +146,14 @@ def authenticate_user(user_email):
     :return logged_user:  authenticated user 
     :type logged_user: User Object
     """
-    try:
-        logged_user = session.query(User).filter_by(email=user_email).one()
-    except NoResultFound:
-        app.logger.erro("Error: {}".format(NoResultFound))
+    logged_user = session.query(User).filter_by(email=user_email).one()
     if not logged_user:
         new_user = User(username=user_email, email=user_email)
         session.add(new_user)
         try:
             session.commit()
         except IntegrityError:
-            app.loggg.erro("Error: {}".format(IntegrityError))
+            app.logger.error("Error: {}".format(IntegrityError))
         logged_user = new_user
     return logged_user
 
