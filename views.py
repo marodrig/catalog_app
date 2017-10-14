@@ -146,7 +146,13 @@ def authenticate_user(user_email):
     :return logged_user:  authenticated user 
     :type logged_user: User Object
     """
-    logged_user = session.query(User).filter_by(email=user_email).one()
+    logged_user = None
+
+    try:
+        logged_user = session.query(User).filter_by(email=user_email).one()
+    except NoResultFound:
+        app.logger.error("Error: {}".format(NoResultFound))
+
     if not logged_user:
         new_user = User(username=user_email, email=user_email)
         session.add(new_user)
