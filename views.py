@@ -41,9 +41,6 @@ def csrf_protect():
             token = login_session.pop('_csrf_token')
         except KeyError:
             app.logger.error("Error: {}".format(KeyError))
-        app.logger.debug("Token: {}".format(token))
-        app.logger.debug("Form token: {}".format(
-            request.form.get('_csrf_token')))
         if not token or token != request.form.get('_csrf_token'):
             abort(403)
 
@@ -68,13 +65,11 @@ def google_signin():
     Call back for logging users using Googles oauth2 API
     Follows the flow given by the oauth client from Google
     """
-    flow = oauth_client.flow_from_clientsecrets('client_secret.json',
-                                                scope=[
-                                                    'openid',
-                                                    'email',
-                                                    'profile'],
-                                                message='Invalid key',
-                                                redirect_uri=url_for('google_signin', _external=True))
+    flow = oauth_client.flow_from_clientsecrets(
+        'client_secret.json',
+        scope=['openid', 'email', 'profile'],
+        message='Invalid key',
+        redirect_uri=url_for('google_signin', _external=True))
 
     flow.params['access_type'] = 'offline'
     flow.params['include_granted_scopes'] = 'true'
@@ -108,8 +103,6 @@ def google_signin():
 
     login_session['profile'] = json.loads(content.decode('utf-8'))
     login_session.modified = True
-    app.logger.debug("Profile Information: {}".format(
-        login_session.get('profile')))
 
     user_email = login_session.get('profile').get('email')
     logged_user = authenticate_user(user_email)
@@ -143,7 +136,7 @@ def authenticate_user(user_email):
 
     :param user_email: email received for google oauth2 login
     :type user_email: string
-    :return logged_user:  authenticated user 
+    :return logged_user:  authenticated user
     :type logged_user: User Object
     """
     logged_user = None
@@ -166,11 +159,12 @@ def authenticate_user(user_email):
 
 def login_user(current_user):
     """
-    Creates and assigns a session_id we can look for if the user is logged in
+    Creates and assigns a session_id we can look for if
+    the user is logged in
 
     :param current_user:
-    :type current_user:  User Object
-    :return result:  if session_id exists in the current user session cookie
+    :type current_user: User Object
+    :return result: if session_id exists in the current user session cookie
     :type result: boolean
     """
     s = Signer('secret_key')
@@ -194,14 +188,11 @@ def login_required(fnc):
         if '_session_id' in login_session:
             s = Signer('secret_key')
             user_id = s.unsign(login_session.get('_session_id'))
-            app.logger.debug('user_id: %s', user_id)
             try:
                 user = session.query(User).filter_by(id=user_id).one()
             except NoResultFound:
                 app.logger.error("Error: {}.".format(NoResultFound))
             if user:
-                app.logger.debug('Authenticated user %s', user.username)
-                # Success!
                 return fnc(*args, **kwargs)
             else:
                 flash("Session exists, but user does not exist (anymore)")
@@ -221,16 +212,19 @@ def get_categories():
     category_list = session.query(Category).all()
     new_item_list = session.query(Item).order_by(
         'date_created').limit(10).all()
-    return render_template('home.html', category_list=category_list, new_item_list=new_item_list)
+    return render_template('home.html',
+                           category_list=category_list,
+                           new_item_list=new_item_list)
 
 
 @app.route('/categories/create', methods=['GET', 'POST'])
+@login_required
 def create_category():
     """
     Create a new category
     """
     if request.method == 'POST':
-        new_category = Category(name= request.form['name'])
+        new_category = Category(name=request.form['name'])
         session.add(new_category)
         try:
             session.commit()
@@ -254,7 +248,9 @@ def show_category_items(category_id):
     category_list = session.query(Category).all()
     items_list = session.query(Item).filter_by(
         category_id=category_id).order_by('date_created').all()
-    return render_template('items.html', items_list=items_list, category_list=category_list)
+    return render_template('items.html',
+                           items_list=items_list,
+                           category_list=category_list)
 
 
 @app.route('/catalog/items/<int:item_id>')
@@ -264,7 +260,9 @@ def show_item(item_id):
     """
     category_list = session.query(Category).all()
     item = session.query(Item).filter_by(id=item_id).one()
-    return render_template('item.html', item=item, category_list=category_list)
+    return render_template('item.html',
+                           item=item,
+                           category_list=category_list)
 
 
 @app.route('/catalog/items/create', methods=['GET', 'POST'])
@@ -273,11 +271,14 @@ def create_item():
     """
     Create a new item for the catalog
     """
+    s = Signer('secret_key')
+    user_id = s.unsign(login_session.get('_session_id'))
     category_list = session.query(Category).all()
     if request.method == 'POST':
         new_item = Item(name=request.form['name'],
                         description=request.form['description'],
                         category_id=request.form['category'],
+                        created_by=user_id,
                         price=request.form['price'])
         session.add(new_item)
         try:
@@ -299,6 +300,12 @@ def edit_item(item_id):
     new_values['id'] = item_id
     qry_inst = session.query(Item).filter_by(id=item_id)
     item = qry_inst.one()
+    s = Signer('secret_key')
+    user_id = s.unsign(login_session.get('_session_id'))
+
+    if int(user_id) != int(item.created_by):
+        abort(403)
+
     if request.method == 'POST':
         if request.form['name']:
             new_values['name'] = request.form['name']
@@ -314,9 +321,12 @@ def edit_item(item_id):
         except IntegrityError:
             app.logger.error("Error: {}".format(IntegrityError))
         flash("Edited item from catalog.")
-        return redirect(url_for('show_category_items', category_id=new_values['category_id']))
+        return redirect(url_for('show_category_items',
+                                category_id=new_values['category_id']))
     category_list = session.query(Category).all()
-    return render_template('edititem.html', item=item, category_list=category_list)
+    return render_template('edititem.html',
+                           item=item,
+                           category_list=category_list)
 
 
 @app.route('/catalog/items/<int:item_id>/delete', methods=['GET', 'POST'])
@@ -325,8 +335,12 @@ def delete_item(item_id):
     """
     Delete an item by item_id
     """
+    s = Signer('secret_key')
     category_list = session.query(Category).all()
     item = session.query(Item).filter_by(id=item_id).one()
+    user_id = s.unsign(login_session.get('_session_id'))
+    if int(item.created_by) != int(user_id):
+        abort(403)
     if request.method == 'POST':
         session.delete(item)
         try:
@@ -334,8 +348,11 @@ def delete_item(item_id):
         except IntegrityError:
             app.logger.error("Error: {}".format(IntegrityError))
         flash("Deleted item from catalog.")
-        return redirect(url_for('show_category_items', category_id=item.category_id))
-    return render_template('deleteitem.html', item=item, category_list=category_list)
+        return redirect(url_for('show_category_items',
+                                category_id=item.category_id))
+    return render_template('deleteitem.html',
+                           item=item,
+                           category_list=category_list)
 
 
 @app.route('/api/v1/items/<int:item_id>', methods=['GET'])
@@ -346,7 +363,7 @@ def item_json(item_id):
 
     :param item_id: item id
     :type item_id: integer
-    :return json: json object of the item 
+    :return json: json object of the item
     :type json: json
     """
     item = session.query(Item).filter_by(id=item_id).one()
@@ -376,7 +393,8 @@ def categories_json():
     :type result: json
     """
     categories = session.query(Category).all()
-    return jsonify(category_list=[category.serialize for category in categories])
+    category_list = [category.serialize for category in categories]
+    return jsonify(category_list)
 
 
 def generate_csrf_token():

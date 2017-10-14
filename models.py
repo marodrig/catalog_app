@@ -91,6 +91,8 @@ class Item(Base):
     """
     __tablename__ = 'item'
     id = Column(Integer, primary_key=True)
+    user = relationship(User)
+    created_by = Column(Integer, ForeignKey('user.id'))
     category = relationship(Category)
     category_id = Column(Integer, ForeignKey('category.id'))
     name = Column(String(32), nullable=False)
