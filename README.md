@@ -78,15 +78,20 @@ This application has a JSON API that can access individual items, all items and 
 
 #### Rate Limit
 
+N/A
+
 #### Status Codes
 
 | Code  | Meaning  |
 |-------|----------|
 |  200  | OK       |
+| 400   |      Something wrong on your end.    |
+|       |          |
+|       |          |
 
-#### End Points
+#### API End-Points and Response
 
-| end-point URL |      Action  |  Response |
+| End-Point URI |      Action  |  Response |
 |---------------|--------------|-----------|
 | _/api/v1/items_ | Get an array of all items| {<br> items:[{<br>  'id':1,<br>  'category_name':"Sports',<br>  'name':"Soccer Ball",<br>  'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>},<br>{}]}|
 | _/api/v1/items/{int:item_id}_ | Get specific item | {<br>'id':1,<br>'category_name':"Sports',<br>'name':"Soccer Ball",<br> 'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>} |
