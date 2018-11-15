@@ -38,12 +38,22 @@ You want to learn about Flask and web development using Python.
 - Flask: web development framework.
 - Google user account for oauth2.
 
-### Cloning repository:
+### Cloning this repository using GIT
 
 You can clone this repository by using git:
 
 ```console
 git clone https://github.com/marodrig/catalog_app
+```
+
+### Using PIP to manage Python dependencies
+
+PIP is a package manager for Python.  Included in this repo is a requirements.txt file with the requirements of the different packages used in this project.
+
+You can simply use pip to install the necessary packages by navigating where the requirements.txt is found and typing:
+
+```console
+pip install -r requirements.txt 
 ```
 
 ## Built with
@@ -82,20 +92,21 @@ N/A
 
 #### Status Codes
 
-| Code  | Meaning  |
-|-------|----------|
-|  200  | OK       |
-| 400   |      Something wrong on your end.    |
-|       |          |
-|       |          |
+| Code  |         Meaning                 |
+|-------|---------------------------------|
+| 200   | OK                              |
+| 400   | Something user's end.           |
+| 401   | Unauthorized                    |
+| 403   | Frobidden                       |
+| 500   | Something wrong on the server side of things. |
 
 #### API End-Points and Response
 
-| End-Point URI |      Action  |  Response |
-|---------------|--------------|-----------|
-| _/api/v1/items_ | Get an array of all items| {<br> items:[{<br>  'id':1,<br>  'category_name':"Sports',<br>  'name':"Soccer Ball",<br>  'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>},<br>{}]}|
-| _/api/v1/items/{int:item_id}_ | Get specific item | {<br>'id':1,<br>'category_name':"Sports',<br>'name':"Soccer Ball",<br> 'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>} |
-| _/api/v1/categories/_ | Get an array of all categories | {<br>categories:[{<br>'id':1,<br>'name':"Sports",<br>},<br>{<br>'id':2,<br>'name':"Housing",<br>}]<br>} |
+| End-Point URI   |      Action                           |  Response                          |
+|-----------------|---------------------------------------|------------------------------------|
+| _/api/v1/items_ | Get an array of all items             | {<br> items:[{<br>  'id':1,<br>  'category_name':"Sports',<br>  'name':"Soccer Ball",<br>  'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>},<br>{}]}|
+| _/api/v1/items/{int:item_id}_ | Get specific item       | {<br>'id':1,<br>'category_name':"Sports',<br>'name':"Soccer Ball",<br> 'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>} |
+| _/api/v1/categories/_ | Get an array of all categories  | {<br>categories:[{<br>'id':1,<br>'name':"Sports",<br>},<br>{<br>'id':2,<br>'name':"Housing",<br>}]<br>} |
 
 
 ## Tests
