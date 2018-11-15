@@ -88,9 +88,9 @@ This application has a JSON API that can access individual items, all items and 
 
 | end-point URL |      Action  |  Response |
 |---------------|--------------|-----------|
-| _/api/v1/items_ | Get an array of all items| {<br>items:[{<br>'id':1,<br>'category_name':"Sports',<br>'name':"Soccer Ball",<br> 'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>},<br>{}]}|
-| _/api/v1/items/{int:item_id}_ | Get individual item | {<br>'id':1,<br>'category_name':"Sports',<br>'name':"Soccer Ball",<br> 'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>} |
-| _/api/v1/categories/_ | Get all categories in catalog | {<br>categories:[{<br>'id':1,<br>'']} |
+| _/api/v1/items_ | Get an array of all items| {<br> items:[{<br>  'id':1,<br>  'category_name':"Sports',<br>  'name':"Soccer Ball",<br>  'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>},<br>{}]}|
+| _/api/v1/items/{int:item_id}_ | Get specific item | {<br>'id':1,<br>'category_name':"Sports',<br>'name':"Soccer Ball",<br> 'description':"Required to play soccer.",<br>'date_created':"2015-07-04",<br>'price':"50.0",<br>} |
+| _/api/v1/categories/_ | Get an array of all categories | {<br>categories:[{<br>'id':1,<br>'name':"Sports",<br>},<br>{<br>'id':2,<br>'name':"Housing",<br>}]<br>} |
 
 
 ## Tests
