@@ -51,3 +51,5 @@ User needs to be logged in and type the following in the browser:
 http://localhost:8080/api/v1/categories/
 
 ## License
+
+[LICENSE](LICENSE)
