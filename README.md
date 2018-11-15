@@ -3,52 +3,103 @@
 Web application using Flask for backend portion and Foundation CSS for the styling.
 The application is a basic catalog of items and includes login using Google's oauth2.
 
-## Requirements
+## What is the reason for this repo?
+
+This repo was made as part of the Udacity nanodegree program. 
+
+## Why should you care about this repo?
+
+You want to learn about Flask and web development using Python.
+
+## Table of Contents
+<details>
+  <summary>
+    Click to expand ToC
+  </summary>
+  
+  1. [Features](#features)
+  2. [Installation](#installation--quick-start)
+  3. [Built with](#built-with)
+  4. [Usage](#usage)
+  5. [API reference](#api-reference)
+  6. [Tests](#tests)
+  7. [FAQ](#faq)
+  8. [Contributing](#contributing)
+  9. [Credits](#credits)
+  10. [Lincense](#license)
+  </details>
+  
+## Features
+
+## Installation & Quick Start
+
+### Requirements
 
 - Flask: web development framework.
 - Google user account for oauth2.
+
+### Cloning repository:
+
+You can clone this repository by using git:
+
+```console
+git clone https://github.com/marodrig/catalog_app
+```
+
+## Built with
+
+- [Flask](http://flask.pocoo.org/)
+- [Python](https://www.python.org/)
+- [pip](https://pypi.org/project/pip/)
+- [Foundation CSS](https://foundation.zurb.com/)
 
 ## Usage
 
 We need to populate the database with data, in order to do so we need to run the followin command:
 
-```cmd
+```shell
 python populate_db.py
 ```
 
 After that we can run the application by the following command:
 
-```cmd
+```shell
 python views.py
 ```
 
 Access the application by going to:
-
 http://localhost:8080/
+
+## API Reference
 
 ### JSON API
 
 This application has a JSON API that can access individual items, all items and all categories of the catalog.
 
-#### Get all items
+#### Rate Limit
 
-Once the user user is authenticated by login using Google, access a list of all items by typing the following in you browser:
+#### Status Codes
 
-http://localhost:8080/api/v1/items
+| Code  | Meaning  |
+|-------|----------|
+|  200  | OK       |
 
-#### Get individual item
+#### End Points
 
-User needs to be logged in and type the following in the browser:
+| end-point URL |      Action  |  Response |
+|---------------|--------------|-----------|
+| _/api/v1/items_ | Get all items| {}        |
+| _/api/v1/items/{int:item_id}_ | Get individual item | {} |
+| _/api/v1/categories/_ | Get all categories in catalog | {} |
 
-http://localhost:8080/api/v1/items/[item_id]
 
-Where__item\_id__ is the id for the item we want to access.
+## Tests
 
-#### Get all categories in our catalog
+## FAQ
 
-User needs to be logged in and type the following in the browser:
+## Contributing
 
-http://localhost:8080/api/v1/categories/
+## Credits
 
 ## License
 
